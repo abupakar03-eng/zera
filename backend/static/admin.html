@@ -219,6 +219,10 @@ tbody tr:hover td{background:rgba(255,255,255,.015)}
 .act-off{background:rgba(248,81,73,.08);color:var(--red2);border-color:rgba(248,81,73,.2)}.act-off:hover:not(:disabled){background:rgba(248,81,73,.16)}
 .act-plan{background:rgba(110,118,255,.08);color:var(--ind2);border-color:rgba(110,118,255,.2)}.act-plan:hover:not(:disabled){background:rgba(110,118,255,.16)}
 .act-gap{display:flex;gap:5px;flex-wrap:nowrap}
+.act-del{background:rgba(248,81,73,.06);color:var(--red2);border-color:rgba(248,81,73,.18)}.act-del:hover:not(:disabled){background:rgba(248,81,73,.18)}
+.del-input{width:100%;padding:9px 12px;background:var(--s2);border:1px solid var(--s3);border-radius:var(--r8);color:var(--txt);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;margin-top:6px}
+.del-input:focus{border-color:var(--red)}
+.del-warn{background:rgba(248,81,73,.05);border:1px solid rgba(248,81,73,.2);border-radius:var(--r8);padding:12px 14px;font-size:12px;color:var(--red2);margin-bottom:16px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -606,6 +610,73 @@ const ChangeKeyModal = ({adminKey, onClose, onChanged}) => {
   );
 };
 
+/* ──────────────── DELETE BUSINESS MODAL ── */
+const DeleteBusinessModal = ({biz, onClose, onDeleted, adminKey}) => {
+  const [typed, setTyped] = useState('');
+  const [loading, setLoading] = useState(false);
+  const toast = React.useContext(ToastCtx);
+  const matches = typed.trim() === biz.business_name.trim();
+
+  const doDelete = async () => {
+    if (!matches) return;
+    setLoading(true);
+    try {
+      await apiCall(`/dashboard-businesses/${biz.uuid}`, 'DELETE', null, adminKey);
+      toast(`"${biz.business_name}" permanently deleted`, 'ok');
+      onDeleted();
+    } catch(e) {
+      toast(e.message, 'err');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="modal-bg" onClick={e=>{if(e.target===e.currentTarget&&!loading)onClose();}}>
+      <div className="modal" style={{maxWidth:460}}>
+        <div className="modal-title" style={{color:'var(--red2)'}}>🗑 Hard Delete Business</div>
+        <div className="modal-sub">
+          You are about to permanently delete <strong style={{color:'var(--txt)'}}>{biz.business_name}</strong>.
+          This will irreversibly remove all products, orders, customers, categories, and the owner account.
+        </div>
+
+        <div className="del-warn">
+          ⚠ <strong>This cannot be undone.</strong> All data will be wiped from the database permanently.
+          <br/>Products: {biz.total_products} &nbsp;·&nbsp; Orders: {biz.total_orders}
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Type the business name to confirm</label>
+          <div style={{fontSize:12,color:'var(--mut)',marginBottom:6,fontFamily:'monospace',background:'var(--s3)',padding:'4px 8px',borderRadius:6,display:'inline-block'}}>
+            {biz.business_name}
+          </div>
+          <input
+            className="del-input"
+            placeholder="Type exact business name…"
+            value={typed}
+            onChange={e=>setTyped(e.target.value)}
+            disabled={loading}
+            autoFocus
+          />
+          {typed && !matches && <div className="form-hint text-red">Name does not match</div>}
+          {matches && <div className="form-hint text-grn">✓ Confirmed — ready to delete</div>}
+        </div>
+
+        <div className="modal-row">
+          <button className="btn btn-cancel" onClick={onClose} disabled={loading}>Cancel</button>
+          <button
+            className="btn btn-danger"
+            onClick={doDelete}
+            disabled={!matches || loading}
+            style={{background:matches?'rgba(248,81,73,.2)':'',borderColor:matches?'rgba(248,81,73,.5)':''}}
+          >
+            {loading ? 'Deleting…' : '🗑 Permanently Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ──────────────── OVERVIEW PAGE ─────── */
 const OverviewPage = ({data}) => {
   const {stats, businesses=[]} = data;
@@ -773,6 +844,7 @@ const BusinessesPage = ({adminKey}) => {
   const [loading, setLoading] = useState(true);
   const [planModal, setPlanModal] = useState(null); // biz object
   const [confirmModal, setConfirmModal] = useState(null); // {biz, action}
+  const [deleteModal, setDeleteModal] = useState(null); // biz object
   const [actionLoading, setActionLoading] = useState(false);
   const timer = useRef(null);
   const toast = React.useContext(ToastCtx);
@@ -859,6 +931,14 @@ const BusinessesPage = ({adminKey}) => {
           onSaved={()=>{ setPlanModal(null); load(page); }}
         />
       )}
+      {deleteModal && (
+        <DeleteBusinessModal
+          biz={deleteModal}
+          adminKey={adminKey}
+          onClose={()=>setDeleteModal(null)}
+          onDeleted={()=>{ setDeleteModal(null); load(1); }}
+        />
+      )}
 
       <div className="ph"><h1>Businesses</h1><p>Manage plans, status and subscriptions for all businesses</p></div>
       <div className="tbl-wrap">
@@ -936,6 +1016,13 @@ const BusinessesPage = ({adminKey}) => {
                             onClick={()=>setPlanModal(b)}
                           >
                             Plan
+                          </button>
+                          <button
+                            className="act-btn act-del"
+                            onClick={()=>setDeleteModal(b)}
+                            title="Permanently delete this business"
+                          >
+                            🗑
                           </button>
                         </div>
                       </td>

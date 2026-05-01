@@ -274,6 +274,24 @@ async def dashboard_update_user_status(
     return {"success": True, "message": f"User {status_text}"}
 
 
+@router.delete("/dashboard-businesses/{uuid}")
+async def dashboard_hard_delete_business(
+    uuid: str,
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key"),
+    db: Session = Depends(get_db)
+):
+    """Admin-key-protected hard-delete of a business and its owner user."""
+    if not x_admin_key or x_admin_key != settings.ADMIN_DASHBOARD_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing admin key")
+
+    admin_service = AdminService(db)
+    result = admin_service.hard_delete_business(uuid)
+    msg = f'"{result["business_name"]}" permanently deleted'
+    if result["user_deleted"]:
+        msg += " (owner account also removed)"
+    return {"success": True, "message": msg}
+
+
 _ADMIN_KEY_FILE = "/var/log/storelink/admin_key.txt"
 
 

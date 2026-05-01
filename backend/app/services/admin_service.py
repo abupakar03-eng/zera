@@ -288,6 +288,41 @@ class AdminService:
         
         return user_list, pagination
     
+    def hard_delete_business(self, business_uuid: str) -> dict:
+        """Permanently delete a business and its owner user (if no other businesses)."""
+        business = self.db.query(Business).filter(
+            Business.uuid == business_uuid
+        ).first()
+
+        if not business:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Business not found"
+            )
+
+        owner_id = business.owner_id
+        business_name = business.business_name
+
+        # Hard-delete the business — DB CASCADE handles products, orders,
+        # customers, categories, affiliates, referrals, plan_limits, etc.
+        self.db.delete(business)
+        self.db.flush()
+
+        # Delete the owner user only if they have no remaining businesses
+        remaining = self.db.query(func.count(Business.id)).filter(
+            Business.owner_id == owner_id
+        ).scalar() or 0
+
+        user_deleted = False
+        if remaining == 0:
+            user = self.db.query(User).filter(User.id == owner_id).first()
+            if user and user.role != UserRole.SUPER_ADMIN:
+                self.db.delete(user)
+                user_deleted = True
+
+        self.db.commit()
+        return {"business_name": business_name, "user_deleted": user_deleted}
+
     def update_user_status(self, user_uuid: str, data: UpdateUserStatusRequest) -> None:
         user = self.db.query(User).filter(
             User.uuid == user_uuid,
