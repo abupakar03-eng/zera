@@ -32,6 +32,15 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     return ApiConstants.fullUrl(path);
   }
 
+  String _subTypeLabel(String sub) {
+    switch (sub) {
+      case 'monthly': return 'Monthly subscription';
+      case 'yearly': return 'Yearly subscription';
+      case 'trial': return 'Trial period';
+      default: return sub;
+    }
+  }
+
   Future<void> _pickAndUploadBanner() async {
     final file = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 85);
     if (file == null || !mounted) return;
@@ -211,28 +220,73 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                                 style: Theme.of(context).textTheme.headlineMedium,
                               ),
                               const SizedBox(height: 8),
-                              Builder(builder: (_) {
+                              Builder(builder: (ctx) {
                                 final isPaid = business.plan == 'PAID' &&
                                     business.subscriptionType != 'trial';
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: isPaid ? Colors.green : Colors.orange,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    isPaid ? 'PAID Plan' : 'FREE Plan',
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                  ),
+                                final isTrial = business.plan == 'PAID' &&
+                                    business.subscriptionType == 'trial';
+                                final planLabel = isPaid
+                                    ? '💎 PRO Plan'
+                                    : isTrial
+                                        ? '⏳ Trial'
+                                        : '🆓 FREE Plan';
+                                final planColor = isPaid
+                                    ? Colors.green
+                                    : isTrial
+                                        ? Colors.purple
+                                        : Colors.orange;
+                                return Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: planColor,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        planLabel,
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    if (business.subscriptionType != null &&
+                                        business.plan == 'PAID') ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _subTypeLabel(business.subscriptionType!),
+                                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                      ),
+                                    ],
+                                    if (business.planExpiryDate != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Expires: ${DateFormat('MMM dd, yyyy').format(business.planExpiryDate!)}',
+                                        style: Theme.of(context).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      width: 200,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () => context.push('/upgrade'),
+                                        icon: Icon(
+                                          isPaid ? Icons.manage_accounts : Icons.rocket_launch,
+                                          size: 16,
+                                        ),
+                                        label: Text(isPaid ? 'Manage Subscription' : 'Upgrade to PRO'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isPaid ? Colors.green.shade700 : Colors.deepOrange,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(24),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 );
                               }),
-                              if (business.planExpiryDate != null) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Expires: ${DateFormat('MMM dd, yyyy').format(business.planExpiryDate!)}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
                             ],
                           ),
                         ),
