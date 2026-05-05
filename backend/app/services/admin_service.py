@@ -221,7 +221,7 @@ class AdminService:
             business.subscription_type = None
 
         if old_plan != business.plan:
-            PlanLimitService.initialize_plan_limits(self.db, business.id, business.plan)
+            PlanLimitService.update_plan_limits(self.db, business.id, business.plan)
 
         self.db.commit()
     
