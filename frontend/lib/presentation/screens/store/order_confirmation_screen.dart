@@ -42,9 +42,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> with 
   Future<void> _shareOnWhatsApp() async {
     final fmt = NumberFormat('#,##,##0.00', 'en_IN');
 
-    final itemLines = widget.order.items
-        .map((i) => '  • ${i.productName} x${i.quantity}')
-        .join('\n');
+    final itemLines = widget.order.items.map((i) {
+      final skuPart = (i.productSku != null && i.productSku!.isNotEmpty)
+          ? ' [${i.productSku}]' : '';
+      return '  • ${i.productName}$skuPart x${i.quantity}';
+    }).join('\n');
 
     final message = '''
 🛍️ *Order Confirmation*
@@ -128,6 +130,37 @@ Thank you for shopping with us!
                           children: [
                             _DetailRow(label: 'Order ID', value: widget.order.orderNumber, isLink: true),
                             const Divider(color: Colors.white12, height: 32),
+                            // Items list with variant/SKU
+                            ...widget.order.items.map((item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(item.productName,
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13)),
+                                        if (item.productSku != null && item.productSku!.isNotEmpty)
+                                          Text('SKU: ${item.productSku}',
+                                              style: TextStyle(
+                                                  color: AppColors.accentBlue.withValues(alpha: 0.8),
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600)),
+                                      ],
+                                    ),
+                                  ),
+                                  Text('×${item.quantity}  ${currencyFmt.format(item.totalPrice)}',
+                                      style: const TextStyle(
+                                          color: Colors.white70, fontSize: 12)),
+                                ],
+                              ),
+                            )),
+                            const Divider(color: Colors.white12, height: 24),
                             _DetailRow(label: 'Total Amount', value: currencyFmt.format(widget.order.totalAmount), isBold: true),
                             const SizedBox(height: 16),
                             _DetailRow(label: 'Payment', value: widget.order.paymentMethod),

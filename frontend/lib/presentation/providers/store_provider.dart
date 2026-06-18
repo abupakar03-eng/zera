@@ -84,21 +84,32 @@ class StoreProvider extends ChangeNotifier {
 
   // ── Cart operations ────────────────────────────────────────────────────────
 
-  void addToCart(StoreProduct product) {
-    final index = _cart.indexWhere((i) => i.product.uuid == product.uuid);
+  void addToCart(StoreProduct product, {String? selectedSize}) {
+    final index = _cart.indexWhere(
+      (i) => i.product.uuid == product.uuid && i.selectedSize == selectedSize,
+    );
     if (index >= 0) {
       if (_cart[index].quantity < product.stockQuantity) {
         _cart[index].quantity++;
       }
     } else {
-      _cart.add(CartItem(product: product, quantity: 1));
+      _cart.add(CartItem(product: product, quantity: 1, selectedSize: selectedSize));
     }
     notifyListeners();
   }
 
-  void removeFromCart(String productUuid) {
-    _cart.removeWhere((i) => i.product.uuid == productUuid);
+  void removeFromCart(String productUuid, {String? selectedSize}) {
+    _cart.removeWhere(
+      (i) => i.product.uuid == productUuid && i.selectedSize == selectedSize,
+    );
     notifyListeners();
+  }
+
+  int cartQuantityForSize(String productUuid, String? selectedSize) {
+    final index = _cart.indexWhere(
+      (i) => i.product.uuid == productUuid && i.selectedSize == selectedSize,
+    );
+    return index >= 0 ? _cart[index].quantity : 0;
   }
 
   void updateQuantity(String productUuid, int quantity) {
@@ -137,9 +148,16 @@ class StoreProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final items = _cart
-          .map((i) => {'product_uuid': i.product.uuid, 'quantity': i.quantity})
-          .toList();
+      final items = _cart.map((i) {
+        final m = <String, dynamic>{
+          'product_uuid': i.product.uuid,
+          'quantity': i.quantity,
+        };
+        if (i.selectedSize != null && i.selectedSize!.isNotEmpty) {
+          m['selected_size'] = i.selectedSize;
+        }
+        return m;
+      }).toList();
 
       final result = await _datasource.placeOrder(
         businessUuid,

@@ -28,6 +28,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   int? _selectedCategoryId;
   bool _isActive = true;
   bool _isEditMode = false;
+  final List<String> _selectedSizes = [];
+  String _sizeMode = 'none'; // none | clothing | footwear | custom
+  final _customSizeController = TextEditingController();
+
+  static const _clothingSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+  static const _footwearSizes = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
 
   final List<Uint8List> _selectedImages = [];
   final List<String> _selectedImageNames = [];
@@ -63,6 +69,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _costPriceController.dispose();
     _stockQuantityController.dispose();
     _unitController.dispose();
+    _customSizeController.dispose();
     super.dispose();
   }
 
@@ -82,6 +89,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         _unitController.text = product.unit ?? '';
         _selectedCategoryId = product.categoryId;
         _isActive = product.isActive;
+        final loadedSizes = product.sizes ?? [];
+        _selectedSizes..clear()..addAll(loadedSizes);
+        if (loadedSizes.isNotEmpty) {
+          final allClothing = loadedSizes.every(_clothingSizes.contains);
+          final allFootwear = loadedSizes.every(_footwearSizes.contains);
+          if (allClothing) _sizeMode = 'clothing';
+          else if (allFootwear) _sizeMode = 'footwear';
+          else _sizeMode = 'custom';
+        }
       });
     }
   }
@@ -175,6 +191,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         unit: _unitController.text.isNotEmpty ? _unitController.text : null,
         categoryId: _selectedCategoryId,
         isActive: _isActive,
+        sizes: _selectedSizes.isEmpty ? null : List.from(_selectedSizes),
       );
       success = await provider.updateProduct(widget.productUuid!, request);
     } else {
@@ -192,6 +209,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         unit: _unitController.text.isNotEmpty ? _unitController.text : null,
         categoryId: _selectedCategoryId,
         isActive: _isActive,
+        sizes: _selectedSizes.isEmpty ? null : List.from(_selectedSizes),
       );
       success = await provider.createProduct(request);
 
@@ -493,17 +511,36 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: TextFormField(
-                            controller: _unitController,
-                            decoration: const InputDecoration(
-                              labelText: 'Unit',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.straighten),
-                              hintText: 'pcs, kg, L, etc.',
-                            ),
+                          child: _UnitPicker(
+                            value: _unitController.text,
+                            onChanged: (v) => setState(() => _unitController.text = v),
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 20),
+                    // ── Size / Variant Selection ───────────────────────────
+                    _SizePicker(
+                      mode: _sizeMode,
+                      selected: _selectedSizes,
+                      customController: _customSizeController,
+                      onModeChanged: (m) => setState(() {
+                        _sizeMode = m;
+                        _selectedSizes.clear();
+                      }),
+                      onToggle: (s, val) => setState(() {
+                        if (val) _selectedSizes.add(s);
+                        else _selectedSizes.remove(s);
+                      }),
+                      onAddCustom: (s) => setState(() {
+                        for (final part in s.split(',')) {
+                          final v = part.trim();
+                          if (v.isNotEmpty && !_selectedSizes.contains(v)) {
+                            _selectedSizes.add(v);
+                          }
+                        }
+                      }),
+                      onRemoveCustom: (s) => setState(() => _selectedSizes.remove(s)),
                     ),
                     const SizedBox(height: 16),
                     SwitchListTile(
@@ -538,6 +575,387 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 ),
               ),
             ),
+    );
+  }
+}
+
+// ── Unit Picker ───────────────────────────────────────────────────────────────
+class _UnitPicker extends StatefulWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+  const _UnitPicker({required this.value, required this.onChanged});
+
+  @override
+  State<_UnitPicker> createState() => _UnitPickerState();
+}
+
+class _UnitPickerState extends State<_UnitPicker> {
+  static const _groups = {
+    'Count':  ['pcs', 'dozen', 'pair', 'set', 'box'],
+    'Weight': ['g', '100g', '250g', '500g', 'kg', '5kg'],
+    'Volume': ['ml', '200ml', '500ml', '1L', '2L', '5L'],
+    'Length': ['cm', 'm'],
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    return GestureDetector(
+      onTap: () => _showSheet(context, primary),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Unit',
+          border: const OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.straighten),
+          suffixIcon: const Icon(Icons.arrow_drop_down),
+        ),
+        child: Text(
+          widget.value.isEmpty ? 'Select unit' : widget.value,
+          style: TextStyle(
+            color: widget.value.isEmpty ? Colors.grey : Colors.black87,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSheet(BuildContext context, Color primary) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _UnitSheet(
+        current: widget.value,
+        groups: _groups,
+        primary: primary,
+        onSelect: (v) {
+          widget.onChanged(v);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+}
+
+class _UnitSheet extends StatefulWidget {
+  final String current;
+  final Map<String, List<String>> groups;
+  final Color primary;
+  final ValueChanged<String> onSelect;
+  const _UnitSheet({required this.current, required this.groups, required this.primary, required this.onSelect});
+
+  @override
+  State<_UnitSheet> createState() => _UnitSheetState();
+}
+
+class _UnitSheetState extends State<_UnitSheet> {
+  late TextEditingController _custom;
+
+  @override
+  void initState() {
+    super.initState();
+    final presets = widget.groups.values.expand((e) => e).toSet();
+    _custom = TextEditingController(
+      text: presets.contains(widget.current) ? '' : widget.current,
+    );
+  }
+
+  @override
+  void dispose() { _custom.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            ),
+            const SizedBox(height: 16),
+            const Text('Select Unit', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            ...widget.groups.entries.map((g) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(g.key, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade600, letterSpacing: 0.5)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: g.value.map((u) {
+                    final sel = widget.current == u;
+                    return ChoiceChip(
+                      label: Text(u),
+                      selected: sel,
+                      onSelected: (_) => widget.onSelect(u),
+                      selectedColor: widget.primary.withValues(alpha: 0.15),
+                      labelStyle: TextStyle(
+                        color: sel ? widget.primary : Colors.black87,
+                        fontWeight: sel ? FontWeight.w700 : FontWeight.normal,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+              ],
+            )),
+            const Divider(),
+            const SizedBox(height: 8),
+            Text('Custom unit', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _custom,
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. packet, roll, bottle...',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    textCapitalization: TextCapitalization.none,
+                    onSubmitted: (v) { if (v.trim().isNotEmpty) widget.onSelect(v.trim()); },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    final v = _custom.text.trim();
+                    if (v.isNotEmpty) widget.onSelect(v);
+                  },
+                  child: const Text('Use'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Size / Variant Picker ─────────────────────────────────────────────────────
+class _SizePicker extends StatelessWidget {
+  final String mode;
+  final List<String> selected;
+  final TextEditingController customController;
+  final ValueChanged<String> onModeChanged;
+  final void Function(String, bool) onToggle;
+  final ValueChanged<String> onAddCustom;
+  final ValueChanged<String> onRemoveCustom;
+
+  static const _clothing = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+  static const _footwear = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
+
+  const _SizePicker({
+    required this.mode,
+    required this.selected,
+    required this.customController,
+    required this.onModeChanged,
+    required this.onToggle,
+    required this.onAddCustom,
+    required this.onRemoveCustom,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Sizes / Variants',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+        const SizedBox(height: 4),
+        const Text('Only needed for clothing, footwear, or items sold in multiple sizes',
+            style: TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 12),
+
+        // Mode toggle
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _ModeChip(label: 'None', icon: Icons.close, active: mode == 'none', primary: primary,
+                  onTap: () => onModeChanged('none')),
+              const SizedBox(width: 8),
+              _ModeChip(label: 'Clothing', icon: Icons.checkroom, active: mode == 'clothing', primary: primary,
+                  onTap: () => onModeChanged('clothing')),
+              const SizedBox(width: 8),
+              _ModeChip(label: 'Footwear', icon: Icons.directions_walk, active: mode == 'footwear', primary: primary,
+                  onTap: () => onModeChanged('footwear')),
+              const SizedBox(width: 8),
+              _ModeChip(label: 'Custom', icon: Icons.edit, active: mode == 'custom', primary: primary,
+                  onTap: () => onModeChanged('custom')),
+            ],
+          ),
+        ),
+
+        if (mode != 'none') ...[
+          const SizedBox(height: 14),
+
+          // Clothing sizes
+          if (mode == 'clothing')
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: _clothing.map((s) {
+                final sel = selected.contains(s);
+                return FilterChip(
+                  label: Text(s),
+                  selected: sel,
+                  onSelected: (v) => onToggle(s, v),
+                  selectedColor: primary.withValues(alpha: 0.15),
+                  checkmarkColor: primary,
+                );
+              }).toList(),
+            ),
+
+          // Footwear sizes
+          if (mode == 'footwear') ...[
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: _footwear.map((s) {
+                final sel = selected.contains(s);
+                return FilterChip(
+                  label: Text(s),
+                  selected: sel,
+                  onSelected: (v) => onToggle(s, v),
+                  selectedColor: primary.withValues(alpha: 0.15),
+                  checkmarkColor: primary,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: customController,
+                    decoration: const InputDecoration(
+                      hintText: 'Add custom size (e.g. 13.5, 14)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      prefixIcon: Icon(Icons.add, size: 18),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onSubmitted: (v) {
+                      for (final p in v.split(',')) { final t = p.trim(); if (t.isNotEmpty) onAddCustom(t); }
+                      customController.clear();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    for (final p in customController.text.split(',')) { final t = p.trim(); if (t.isNotEmpty) onAddCustom(t); }
+                    customController.clear();
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            ),
+          ],
+
+          // Custom sizes
+          if (mode == 'custom') ...[
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: customController,
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. 250ml, 500g, Small, Free Size...',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      prefixIcon: Icon(Icons.add, size: 18),
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    onSubmitted: (v) {
+                      for (final p in v.split(',')) { final t = p.trim(); if (t.isNotEmpty) onAddCustom(t); }
+                      customController.clear();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    for (final p in customController.text.split(',')) { final t = p.trim(); if (t.isNotEmpty) onAddCustom(t); }
+                    customController.clear();
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            ),
+            if (selected.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8, runSpacing: 8,
+                children: selected.map((s) => Chip(
+                  label: Text(s),
+                  deleteIcon: const Icon(Icons.close, size: 16),
+                  onDeleted: () => onRemoveCustom(s),
+                  backgroundColor: primary.withValues(alpha: 0.1),
+                  labelStyle: TextStyle(color: primary, fontWeight: FontWeight.w600),
+                )).toList(),
+              ),
+            ],
+          ],
+
+          // Show selected summary for clothing/footwear
+          if (mode != 'custom' && selected.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Selected: ${selected.join(', ')}',
+                style: TextStyle(fontSize: 12, color: primary, fontWeight: FontWeight.w600)),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+class _ModeChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool active;
+  final Color primary;
+  final VoidCallback onTap;
+  const _ModeChip({required this.label, required this.icon, required this.active, required this.primary, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? primary : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: active ? primary : Colors.grey.shade300),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: active ? Colors.white : Colors.grey.shade600),
+            const SizedBox(width: 5),
+            Text(label,
+                style: TextStyle(
+                  color: active ? Colors.white : Colors.grey.shade700,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.normal,
+                  fontSize: 13,
+                )),
+          ],
+        ),
+      ),
     );
   }
 }

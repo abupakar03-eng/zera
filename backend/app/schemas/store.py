@@ -48,6 +48,7 @@ class StoreProductResponse(BaseModel):
     unit: Optional[str] = None
     image_url: Optional[str] = None
     image_urls: List[str] = []
+    sizes: Optional[List[str]] = None
     stock_quantity: int
     category_name: Optional[str] = None
     is_available: bool
@@ -61,6 +62,7 @@ class StoreProductResponse(BaseModel):
 class StoreOrderItem(BaseModel):
     product_uuid: str
     quantity: int = Field(ge=1)
+    selected_size: Optional[str] = None
 
 
 class StoreOrderCreate(BaseModel):
@@ -92,6 +94,7 @@ class StoreOrderCreate(BaseModel):
 
 class StoreOrderItemResponse(BaseModel):
     product_name: str
+    product_sku: Optional[str] = None
     quantity: int
     unit_price: float
     total_price: float

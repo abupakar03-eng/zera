@@ -46,3 +46,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/login_bg.jpg
+    - assets/images/holographic_product.png
+    - assets/images/payment_success.png

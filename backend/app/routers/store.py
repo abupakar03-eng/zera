@@ -36,11 +36,13 @@ router = APIRouter(prefix="/store", tags=["storefront"])
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-def _get_active_business(business_uuid: str, db: Session) -> Business:
+def _get_active_business(identifier: str, db: Session) -> Business:
+    """Lookup business by UUID or store_slug."""
     business = db.query(Business).filter(
-        Business.uuid == business_uuid,
         Business.is_active == True,
         Business.deleted_at.is_(None),
+    ).filter(
+        (Business.uuid == identifier) | (Business.store_slug == identifier)
     ).first()
     if not business:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
@@ -70,6 +72,7 @@ def _order_to_response(order: Order, items: List[OrderItem]) -> StoreOrderRespon
         items=[
             StoreOrderItemResponse(
                 product_name=i.product_name,
+                product_sku=i.product_sku,
                 quantity=i.quantity,
                 unit_price=float(i.unit_price),
                 total_price=float(i.total_price),
@@ -171,6 +174,7 @@ def get_store_products(
             unit=p.unit,
             image_url=p.image_urls[0] if (p.image_urls and len(p.image_urls) > 0) else p.image_url,
             image_urls=p.image_urls or [],
+            sizes=p.sizes or [],
             stock_quantity=p.stock_quantity,
             category_name=c.name if c else None,
             is_available=p.stock_quantity > 0,
@@ -228,10 +232,15 @@ def place_store_order(
         item_total = product.price * item_req.quantity
         subtotal += item_total
 
+        # Append selected size to SKU: e.g. "SHIRT-001-L"
+        sku = product.sku or ""
+        if item_req.selected_size:
+            sku = f"{sku}-{item_req.selected_size}" if sku else item_req.selected_size
+
         order_items_data.append({
             "product_id": product.id,
             "product_name": product.name,
-            "product_sku": product.sku,
+            "product_sku": sku or None,
             "quantity": item_req.quantity,
             "unit_price": product.price,
             "total_price": item_total,
