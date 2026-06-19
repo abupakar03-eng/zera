@@ -29,7 +29,7 @@ class BiometricService {
   Future<bool> authenticate() async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Authenticate to access StoreLink',
+        localizedReason: 'Authenticate to access ZERA',
         options: const AuthenticationOptions(
           biometricOnly: false,
           stickyAuth: true,

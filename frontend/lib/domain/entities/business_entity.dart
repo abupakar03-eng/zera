@@ -1,5 +1,6 @@
 class BusinessEntity {
   final String uuid;
+  final String? storeSlug;
   final String businessName;
   final String plan;
   final bool isActive;
@@ -20,6 +21,7 @@ class BusinessEntity {
 
   const BusinessEntity({
     required this.uuid,
+    this.storeSlug,
     required this.businessName,
     required this.plan,
     required this.isActive,

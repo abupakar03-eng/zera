@@ -57,11 +57,11 @@ class _AffiliateScreenState extends State<AffiliateScreen> {
 
   void _shareWhatsApp() {
     if (_stats == null) return;
-    final msg = '🎉 Manage your business easily with StoreLink!\n'
+    final msg = '🎉 Manage your business easily with ZERA!\n'
         'Use my referral code when you register:\n\n'
         '👉 ${_stats!.referralCode}\n\n'
         'Refer 3 friends and get 1 month FREE!\n'
-        'Download: https://storelink.app';
+        'Download: https://zeramai.com';
     Share.share(msg);
   }
 

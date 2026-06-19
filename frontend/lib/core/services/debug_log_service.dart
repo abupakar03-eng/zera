@@ -27,7 +27,7 @@ class DebugLog {
   static Future<void> shareViaSystem() async {
     final content = export();
     final body = content.isEmpty ? '(no logs captured yet)' : content;
-    await Share.share(body, subject: 'StoreLink debug log');
+    await Share.share(body, subject: 'ZERA debug log');
   }
 
   static void clear() => _buffer.clear();

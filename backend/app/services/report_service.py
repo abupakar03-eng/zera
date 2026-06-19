@@ -62,20 +62,29 @@ class ReportService:
         orders = query.order_by(Order.order_date.desc()).all()
         
         total_revenue = Decimal("0.00")
+        total_profit = Decimal("0.00")
         total_tax = Decimal("0.00")
         total_discount = Decimal("0.00")
         sales_items = []
-        
+
         for order in orders:
             customer = None
             if order.customer_id:
                 customer = self.db.query(Customer).filter(Customer.id == order.customer_id).first()
-            
+
             if order.payment_status == PaymentStatus.PAID:
                 total_revenue += order.total_amount
+                # Profit = (unit_price - cost_price) * qty for each item
+                for item in order.items:
+                    product = self.db.query(Product).filter(Product.id == item.product_id).first() if item.product_id else None
+                    cost = Decimal(str(product.cost_price)) if product and product.cost_price else Decimal("0.00")
+                    unit_price = Decimal(str(item.unit_price))
+                    qty = Decimal(str(item.quantity))
+                    total_profit += (unit_price - cost) * qty
+
             total_tax += order.tax_amount
             total_discount += order.discount_amount
-            
+
             sales_items.append(SalesReportItem(
                 order_number=order.order_number,
                 customer_name=customer.name if customer else None,
@@ -87,13 +96,14 @@ class ReportService:
                 discount_amount=order.discount_amount,
                 total_amount=order.total_amount
             ))
-        
+
         return SalesReportResponse(
             business_name=business_name,
             from_date=from_date,
             to_date=to_date,
             total_orders=len(orders),
             total_revenue=total_revenue,
+            total_profit=total_profit,
             total_tax=total_tax,
             total_discount=total_discount,
             orders=sales_items
@@ -136,6 +146,7 @@ class ReportService:
 
         product_items = []
         total_revenue = Decimal("0.00")
+        total_profit = Decimal("0.00")
         total_sold = 0
 
         for product in all_products:
@@ -146,6 +157,12 @@ class ReportService:
             total_revenue += revenue
             if qty > 0:
                 total_sold += 1
+
+            # Profit = (selling_price - cost_price) * qty_sold
+            cost = Decimal(str(product.cost_price)) if product.cost_price else Decimal("0.00")
+            selling = Decimal(str(product.price)) if product.price else Decimal("0.00")
+            product_profit = (selling - cost) * qty
+            total_profit += product_profit
 
             category_name = None
             if product.category_id:
@@ -159,6 +176,7 @@ class ReportService:
                 category_name=category_name,
                 total_quantity_sold=qty,
                 total_revenue=revenue,
+                total_profit=product_profit,
                 orders_count=orders_count
             ))
 
@@ -171,6 +189,7 @@ class ReportService:
             to_date=to_date,
             total_products_sold=total_sold,
             total_revenue=total_revenue,
+            total_profit=total_profit,
             products=product_items
         )
     
@@ -214,11 +233,32 @@ class ReportService:
 
         customer_items = []
         total_revenue = Decimal("0.00")
+        total_profit = Decimal("0.00")
 
         for customer in all_customers:
             stats = stats_by_customer.get(customer.id)
             spent = Decimal(str(stats.total_spent)) if stats and stats.total_spent else Decimal("0.00")
             total_revenue += spent
+
+            # Calculate profit for this customer's orders
+            customer_orders = self.db.query(Order).filter(
+                Order.business_id == business_id,
+                Order.customer_id == customer.id,
+                Order.payment_status == PaymentStatus.PAID,
+                Order.deleted_at.is_(None)
+            )
+            if start_date:
+                customer_orders = customer_orders.filter(func.date(Order.order_date) >= start_date)
+            if end_date:
+                customer_orders = customer_orders.filter(func.date(Order.order_date) <= end_date)
+
+            for order in customer_orders.all():
+                for item in order.items:
+                    product = self.db.query(Product).filter(Product.id == item.product_id).first() if item.product_id else None
+                    cost = Decimal(str(product.cost_price)) if product and product.cost_price else Decimal("0.00")
+                    unit_price = Decimal(str(item.unit_price))
+                    qty = Decimal(str(item.quantity))
+                    total_profit += (unit_price - cost) * qty
 
             customer_items.append(CustomerReportItem(
                 customer_name=customer.name,
@@ -238,5 +278,6 @@ class ReportService:
             to_date=to_date,
             total_customers=len(customer_items),
             total_revenue=total_revenue,
+            total_profit=total_profit,
             customers=customer_items
         )

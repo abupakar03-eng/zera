@@ -19,7 +19,8 @@ class ApiConstants {
   }
 
   /// Returns the public store URL for customers
-  static String storeUrl(String businessUuid) => '$webAppUrl/store/$businessUuid';
+  static String storeUrl(String businessUuid, {String? storeSlug}) =>
+      '$webAppUrl/store/${storeSlug ?? businessUuid}';
 
   static String get serverUrl => baseUrl.replaceAll('/v1', '');
 

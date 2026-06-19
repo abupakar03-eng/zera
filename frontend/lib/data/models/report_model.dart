@@ -7,6 +7,7 @@ class SalesReportModel extends SalesReportEntity {
     super.toDate,
     required super.totalOrders,
     required super.totalRevenue,
+    required super.totalProfit,
     required super.totalTax,
     required super.totalDiscount,
     required super.orders,
@@ -19,6 +20,7 @@ class SalesReportModel extends SalesReportEntity {
       toDate: json['to_date'] as String?,
       totalOrders: json['total_orders'] as int? ?? 0,
       totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0.0,
+      totalProfit: (json['total_profit'] as num?)?.toDouble() ?? 0.0,
       totalTax: (json['total_tax'] as num?)?.toDouble() ?? 0.0,
       totalDiscount: (json['total_discount'] as num?)?.toDouble() ?? 0.0,
       orders: ((json['orders'] as List?) ?? [])
@@ -63,6 +65,7 @@ class ProductReportModel extends ProductReportEntity {
     super.toDate,
     required super.totalProductsSold,
     required super.totalRevenue,
+    required super.totalProfit,
     required super.products,
   });
 
@@ -73,6 +76,7 @@ class ProductReportModel extends ProductReportEntity {
       toDate: json['to_date'] as String?,
       totalProductsSold: json['total_products_sold'] as int? ?? 0,
       totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0.0,
+      totalProfit: (json['total_profit'] as num?)?.toDouble() ?? 0.0,
       products: ((json['products'] as List?) ?? [])
           .map((item) => ProductReportItemModel.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -87,6 +91,7 @@ class ProductReportItemModel extends ProductReportItem {
     super.categoryName,
     required super.totalQuantitySold,
     required super.totalRevenue,
+    required super.totalProfit,
     required super.ordersCount,
   });
 
@@ -97,6 +102,7 @@ class ProductReportItemModel extends ProductReportItem {
       categoryName: json['category_name'] as String?,
       totalQuantitySold: json['total_quantity_sold'] as int? ?? 0,
       totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0.0,
+      totalProfit: (json['total_profit'] as num?)?.toDouble() ?? 0.0,
       ordersCount: json['orders_count'] as int? ?? 0,
     );
   }
@@ -109,6 +115,7 @@ class CustomerReportModel extends CustomerReportEntity {
     super.toDate,
     required super.totalCustomers,
     required super.totalRevenue,
+    required super.totalProfit,
     required super.customers,
   });
 
@@ -119,6 +126,7 @@ class CustomerReportModel extends CustomerReportEntity {
       toDate: json['to_date'] as String?,
       totalCustomers: json['total_customers'] as int? ?? 0,
       totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0.0,
+      totalProfit: (json['total_profit'] as num?)?.toDouble() ?? 0.0,
       customers: ((json['customers'] as List?) ?? [])
           .map((item) => CustomerReportItemModel.fromJson(item as Map<String, dynamic>))
           .toList(),

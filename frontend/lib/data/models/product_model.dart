@@ -15,6 +15,7 @@ class ProductModel extends ProductEntity {
     super.unit,
     super.imageUrl,
     super.imageUrls,
+    super.sizes,
     required super.isActive,
     required super.createdAt,
     required super.updatedAt,
@@ -44,6 +45,7 @@ class ProductModel extends ProductEntity {
       imageUrls: (json['image_urls'] as List<dynamic>?)
           ?.map((e) => ApiConstants.fullUrl(e as String))
           .toList(),
+      sizes: (json['sizes'] as List<dynamic>?)?.map((e) => e as String).toList(),
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -81,6 +83,7 @@ class ProductCreateRequest {
   final int stockQuantity;
   final String? unit;
   final List<String>? imageUrls;
+  final List<String>? sizes;
   final bool isActive;
 
   const ProductCreateRequest({
@@ -93,6 +96,7 @@ class ProductCreateRequest {
     this.stockQuantity = 0,
     this.unit,
     this.imageUrls,
+    this.sizes,
     this.isActive = true,
   });
 
@@ -109,6 +113,7 @@ class ProductCreateRequest {
     data['stock_quantity'] = stockQuantity;
     if (unit != null && unit!.isNotEmpty) data['unit'] = unit;
     if (imageUrls != null) data['image_urls'] = imageUrls;
+    if (sizes != null) data['sizes'] = sizes;
     data['is_active'] = isActive;
     return data;
   }
@@ -124,6 +129,7 @@ class ProductUpdateRequest {
   final int? stockQuantity;
   final String? unit;
   final List<String>? imageUrls;
+  final List<String>? sizes;
   final bool? isActive;
 
   const ProductUpdateRequest({
@@ -136,6 +142,7 @@ class ProductUpdateRequest {
     this.stockQuantity,
     this.unit,
     this.imageUrls,
+    this.sizes,
     this.isActive,
   });
 
@@ -150,6 +157,7 @@ class ProductUpdateRequest {
     if (stockQuantity != null) data['stock_quantity'] = stockQuantity;
     if (unit != null) data['unit'] = unit;
     if (imageUrls != null) data['image_urls'] = imageUrls;
+    if (sizes != null) data['sizes'] = sizes;
     if (isActive != null) data['is_active'] = isActive;
     return data;
   }

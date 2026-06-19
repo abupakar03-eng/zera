@@ -7,6 +7,38 @@ class AuthApiDatasource {
 
   AuthApiDatasource(this._dio);
 
+  /// Safely extract error message from a DioException response.
+  /// Handles cases where response.data is HTML/String (e.g. nginx rate-limit page).
+  String _extractError(DioException e, String fallback) {
+    final data = e.response?.data;
+    final status = e.response?.statusCode;
+
+    if (status == 429) return 'Too many attempts. Please wait a minute and try again.';
+
+    if (data is Map) {
+      final detail = data['detail'];
+      if (detail is List) {
+        final msgs = (detail as List)
+            .map((d) => (d is Map) ? d['msg']?.toString() ?? '' : d.toString())
+            .where((m) => m.isNotEmpty)
+            .join(', ');
+        return msgs.isNotEmpty ? msgs : fallback;
+      }
+      if (detail != null) return detail.toString();
+    }
+
+    if (e.type == DioExceptionType.connectionError ||
+        e.type == DioExceptionType.unknown) {
+      return 'Cannot connect to server. Check your internet connection.';
+    }
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return 'Connection timed out. Please try again.';
+    }
+
+    return fallback;
+  }
+
   Future<Map<String, dynamic>> register({
     required String phone,
     required String password,
@@ -33,25 +65,16 @@ class AuthApiDatasource {
         '${ApiConstants.baseUrl}${ApiConstants.authRegister}',
         data: body,
       );
-      if (response.statusCode == 201 && response.data['success']) {
+      if (response.statusCode == 201 &&
+          response.data is Map &&
+          response.data['success'] == true) {
         return response.data['data'] as Map<String, dynamic>;
       } else {
-        throw Exception(response.data['detail'] ?? 'Registration failed');
+        final detail = (response.data is Map) ? response.data['detail'] : null;
+        throw Exception(detail?.toString() ?? 'Registration failed');
       }
     } on DioException catch (e) {
-      final data = e.response?.data;
-      if (data != null) {
-        // 422 Pydantic detail is a list or string
-        if (data['detail'] is List) {
-          final msgs = (data['detail'] as List)
-              .map((d) => d['msg']?.toString() ?? '')
-              .where((m) => m.isNotEmpty)
-              .join(', ');
-          throw Exception(msgs.isNotEmpty ? msgs : 'Registration failed');
-        }
-        throw Exception(data['detail']?.toString() ?? 'Registration failed');
-      }
-      throw Exception('[${e.type.name}] ${e.message ?? e.error ?? 'Connection failed'}');
+      throw Exception(_extractError(e, 'Registration failed'));
     }
   }
 
@@ -67,28 +90,17 @@ class AuthApiDatasource {
           'password': password,
         },
       );
-      if (response.statusCode == 200 && response.data['success']) {
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['success'] == true) {
         return response.data['data'] as Map<String, dynamic>;
       } else {
-        throw Exception(response.data['detail'] ?? 'Login failed');
+        final detail = (response.data is Map) ? response.data['detail'] : null;
+        throw Exception(detail?.toString() ?? 'Login failed');
       }
     } on DioException catch (e) {
-      debugPrint('DioException type: ${e.type}');
-      debugPrint('DioException message: ${e.message}');
-      debugPrint('DioException error: ${e.error}');
-      debugPrint('DioException url: ${e.requestOptions.uri}');
-      final data = e.response?.data;
-      if (data != null) {
-        if (data['detail'] is List) {
-          final msgs = (data['detail'] as List)
-              .map((d) => d['msg']?.toString() ?? '')
-              .where((m) => m.isNotEmpty)
-              .join(', ');
-          throw Exception(msgs.isNotEmpty ? msgs : 'Login failed');
-        }
-        throw Exception(data['detail']?.toString() ?? 'Login failed');
-      }
-      throw Exception('[${e.type.name}] ${e.message ?? e.error ?? 'Connection failed'}');
+      debugPrint('Login DioException: ${e.type} | ${e.message}');
+      throw Exception(_extractError(e, 'Login failed'));
     }
   }
 
@@ -96,16 +108,22 @@ class AuthApiDatasource {
     required String phone,
     required String purpose,
   }) async {
-    final response = await _dio.post(
-      '${ApiConstants.baseUrl}${ApiConstants.authOtpSend}',
-      data: {
-        'phone': phone,
-        'purpose': purpose,
-      },
-    );
-
-    if (response.statusCode != 200 || !response.data['success']) {
-      throw Exception(response.data['detail'] ?? 'Failed to send OTP');
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.baseUrl}${ApiConstants.authOtpSend}',
+        data: {
+          'phone': phone,
+          'purpose': purpose,
+        },
+      );
+      if (response.statusCode != 200 ||
+          !(response.data is Map) ||
+          response.data['success'] != true) {
+        final detail = (response.data is Map) ? response.data['detail'] : null;
+        throw Exception(detail?.toString() ?? 'Failed to send OTP');
+      }
+    } on DioException catch (e) {
+      throw Exception(_extractError(e, 'Failed to send OTP'));
     }
   }
 
@@ -114,49 +132,67 @@ class AuthApiDatasource {
     required String otpCode,
     required String purpose,
   }) async {
-    final response = await _dio.post(
-      '${ApiConstants.baseUrl}${ApiConstants.authOtpVerify}',
-      data: {
-        'phone': phone,
-        'otp_code': otpCode,
-        'purpose': purpose,
-      },
-    );
-
-    if (response.statusCode == 200 && response.data['success']) {
-      return response.data['data'] as Map<String, dynamic>;
-    } else {
-      throw Exception(response.data['detail'] ?? 'OTP verification failed');
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.baseUrl}${ApiConstants.authOtpVerify}',
+        data: {
+          'phone': phone,
+          'otp_code': otpCode,
+          'purpose': purpose,
+        },
+      );
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['success'] == true) {
+        return response.data['data'] as Map<String, dynamic>;
+      } else {
+        final detail = (response.data is Map) ? response.data['detail'] : null;
+        throw Exception(detail?.toString() ?? 'OTP verification failed');
+      }
+    } on DioException catch (e) {
+      throw Exception(_extractError(e, 'OTP verification failed'));
     }
   }
 
   Future<Map<String, dynamic>> getCurrentUser(String token) async {
-    final response = await _dio.get(
-      '${ApiConstants.baseUrl}${ApiConstants.authMe}',
-      options: Options(
-        headers: {'Authorization': 'Bearer $token'},
-      ),
-    );
-
-    if (response.statusCode == 200 && response.data['success']) {
-      return response.data['data'] as Map<String, dynamic>;
-    } else {
-      throw Exception(response.data['detail'] ?? 'Failed to get user data');
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.baseUrl}${ApiConstants.authMe}',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['success'] == true) {
+        return response.data['data'] as Map<String, dynamic>;
+      } else {
+        final detail = (response.data is Map) ? response.data['detail'] : null;
+        throw Exception(detail?.toString() ?? 'Failed to get user data');
+      }
+    } on DioException catch (e) {
+      throw Exception(_extractError(e, 'Failed to get user data'));
     }
   }
 
   Future<Map<String, dynamic>> refreshToken(String refreshToken) async {
-    final response = await _dio.post(
-      '${ApiConstants.baseUrl}${ApiConstants.authRefresh}',
-      data: {
-        'refresh_token': refreshToken,
-      },
-    );
-
-    if (response.statusCode == 200 && response.data['success']) {
-      return response.data['data'] as Map<String, dynamic>;
-    } else {
-      throw Exception(response.data['detail'] ?? 'Token refresh failed');
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.baseUrl}${ApiConstants.authRefresh}',
+        data: {
+          'refresh_token': refreshToken,
+        },
+      );
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['success'] == true) {
+        return response.data['data'] as Map<String, dynamic>;
+      } else {
+        final detail = (response.data is Map) ? response.data['detail'] : null;
+        throw Exception(detail?.toString() ?? 'Token refresh failed');
+      }
+    } on DioException catch (e) {
+      throw Exception(_extractError(e, 'Token refresh failed'));
     }
   }
 
@@ -166,13 +202,15 @@ class AuthApiDatasource {
         '${ApiConstants.baseUrl}/auth/google',
         data: {'supabase_token': supabaseToken},
       );
-      if (response.statusCode == 200 && response.data['success']) {
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['success'] == true) {
         return response.data['data'] as Map<String, dynamic>;
       }
-      throw Exception(response.data['detail'] ?? 'Google auth failed');
+      final detail = (response.data is Map) ? response.data['detail'] : null;
+      throw Exception(detail?.toString() ?? 'Google auth failed');
     } on DioException catch (e) {
-      final data = e.response?.data;
-      throw Exception(data?['detail']?.toString() ?? 'Connection failed');
+      throw Exception(_extractError(e, 'Google auth failed'));
     }
   }
 
@@ -192,13 +230,15 @@ class AuthApiDatasource {
           'business_phone': businessPhone ?? phone,
         },
       );
-      if (response.statusCode == 201 && response.data['success']) {
+      if (response.statusCode == 201 &&
+          response.data is Map &&
+          response.data['success'] == true) {
         return response.data['data'] as Map<String, dynamic>;
       }
-      throw Exception(response.data['detail'] ?? 'Registration failed');
+      final detail = (response.data is Map) ? response.data['detail'] : null;
+      throw Exception(detail?.toString() ?? 'Registration failed');
     } on DioException catch (e) {
-      final data = e.response?.data;
-      throw Exception(data?['detail']?.toString() ?? 'Connection failed');
+      throw Exception(_extractError(e, 'Registration failed'));
     }
   }
 
@@ -207,17 +247,23 @@ class AuthApiDatasource {
     required String newPassword,
     required String otpCode,
   }) async {
-    final response = await _dio.post(
-      '${ApiConstants.baseUrl}/auth/reset-password',
-      data: {
-        'phone': phone,
-        'new_password': newPassword,
-        'otp_code': otpCode,
-      },
-    );
-
-    if (response.statusCode != 200 || !response.data['success']) {
-      throw Exception(response.data['detail'] ?? 'Password reset failed');
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.baseUrl}/auth/reset-password',
+        data: {
+          'phone': phone,
+          'new_password': newPassword,
+          'otp_code': otpCode,
+        },
+      );
+      if (response.statusCode != 200 ||
+          !(response.data is Map) ||
+          response.data['success'] != true) {
+        final detail = (response.data is Map) ? response.data['detail'] : null;
+        throw Exception(detail?.toString() ?? 'Password reset failed');
+      }
+    } on DioException catch (e) {
+      throw Exception(_extractError(e, 'Password reset failed'));
     }
   }
 }

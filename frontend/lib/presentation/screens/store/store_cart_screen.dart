@@ -184,7 +184,26 @@ class _CartItemTile extends StatelessWidget {
               children: [
                 Text(item.product.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                 const SizedBox(height: 4),
-                Text(fmt.format(item.product.price), style: const TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.w500, fontSize: 13)),
+                Row(
+                  children: [
+                    Text(fmt.format(item.product.price), style: const TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.w500, fontSize: 13)),
+                    if (item.selectedSize != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.cyan.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.cyan.withValues(alpha: 0.4)),
+                        ),
+                        child: Text(
+                          item.selectedSize!,
+                          style: const TextStyle(color: Colors.cyan, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 12),
                 Container(
                   width: 100,

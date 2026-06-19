@@ -1,9 +1,10 @@
 'use strict';
 
-const CACHE_NAME = 'storelink-v3';
+const CACHE_NAME = 'storelink-v4';
 
-// URLs that must NEVER be cached or intercepted (auth flows, API)
+// URLs that must NEVER be cached or intercepted (storefront, auth flows, API)
 const BYPASS_PATTERNS = [
+  '/store/',        // customer storefront — always fetch fresh, never serve cached root
   '/auth-callback',
   '/v1/',
   'supabase',
@@ -61,6 +62,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       });
-    }).catch(() => caches.match('/'))
+    }).catch(() => fetch(event.request))
   );
 });

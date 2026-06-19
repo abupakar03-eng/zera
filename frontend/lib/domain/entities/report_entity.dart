@@ -4,6 +4,7 @@ class SalesReportEntity {
   final String? toDate;
   final int totalOrders;
   final double totalRevenue;
+  final double totalProfit;
   final double totalTax;
   final double totalDiscount;
   final List<SalesOrderItem> orders;
@@ -14,6 +15,7 @@ class SalesReportEntity {
     this.toDate,
     required this.totalOrders,
     required this.totalRevenue,
+    required this.totalProfit,
     required this.totalTax,
     required this.totalDiscount,
     required this.orders,
@@ -50,6 +52,7 @@ class ProductReportEntity {
   final String? toDate;
   final int totalProductsSold;
   final double totalRevenue;
+  final double totalProfit;
   final List<ProductReportItem> products;
 
   const ProductReportEntity({
@@ -58,6 +61,7 @@ class ProductReportEntity {
     this.toDate,
     required this.totalProductsSold,
     required this.totalRevenue,
+    required this.totalProfit,
     required this.products,
   });
 }
@@ -68,6 +72,7 @@ class ProductReportItem {
   final String? categoryName;
   final int totalQuantitySold;
   final double totalRevenue;
+  final double totalProfit;
   final int ordersCount;
 
   const ProductReportItem({
@@ -76,6 +81,7 @@ class ProductReportItem {
     this.categoryName,
     required this.totalQuantitySold,
     required this.totalRevenue,
+    required this.totalProfit,
     required this.ordersCount,
   });
 }
@@ -86,6 +92,7 @@ class CustomerReportEntity {
   final String? toDate;
   final int totalCustomers;
   final double totalRevenue;
+  final double totalProfit;
   final List<CustomerReportItem> customers;
 
   const CustomerReportEntity({
@@ -94,6 +101,7 @@ class CustomerReportEntity {
     this.toDate,
     required this.totalCustomers,
     required this.totalRevenue,
+    required this.totalProfit,
     required this.customers,
   });
 }

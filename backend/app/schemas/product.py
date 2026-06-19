@@ -19,6 +19,7 @@ class ProductCreateRequest(BaseModel):
     unit: Optional[str] = Field(None, max_length=50)
     image_url: Optional[str] = None
     image_urls: List[str] = []
+    sizes: Optional[List[str]] = None
     is_active: bool = True
 
 
@@ -33,6 +34,7 @@ class ProductUpdateRequest(BaseModel):
     unit: Optional[str] = Field(None, max_length=50)
     image_url: Optional[str] = None
     image_urls: Optional[List[str]] = None
+    sizes: Optional[List[str]] = None
     is_active: Optional[bool] = None
 
 
@@ -49,6 +51,7 @@ class ProductResponse(BaseModel):
     unit: Optional[str]
     image_url: Optional[str]
     image_urls: List[str] = []
+    sizes: Optional[List[str]] = None
     is_active: bool
     created_at: datetime
     updated_at: datetime

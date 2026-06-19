@@ -1,4 +1,5 @@
 from sqlalchemy import Column, BigInteger, String, TIMESTAMP, ForeignKey, Text, DECIMAL, Enum
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 import enum
@@ -42,6 +43,8 @@ class Order(Base):
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
     deleted_at = Column(TIMESTAMP, nullable=True)
+
+    items = relationship("OrderItem", backref="order", lazy="select")
 
 
 class OrderItem(Base):

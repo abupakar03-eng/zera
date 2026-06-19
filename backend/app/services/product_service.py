@@ -94,6 +94,7 @@ class ProductService:
             unit=data.unit,
             image_url=data.image_url,
             image_urls=data.image_urls or [],
+            sizes=data.sizes or [],
             is_active=data.is_active
         )
         

@@ -163,13 +163,13 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            "$total/10 products used — Upgrade for unlimited",
+                            "$total/10 products used — Go PRO for unlimited",
                             style: const TextStyle(
                                 color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text('Upgrade →',
+                        const Text('Learn More →',
                             style: TextStyle(
                                 color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900)),
                       ],

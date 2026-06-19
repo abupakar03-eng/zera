@@ -135,9 +135,9 @@ class _ReportsScreenState extends State<ReportsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Upgrade Required'),
+        title: const Text('PRO Feature'),
         content: const Text(
-          'Export functionality is only available for PAID plan users.',
+          'Export functionality is available with the PRO plan.',
         ),
         actions: [
           TextButton(
@@ -149,7 +149,7 @@ class _ReportsScreenState extends State<ReportsScreen>
               Navigator.pop(context);
               context.push('/upgrade');
             },
-            child: const Text('Upgrade'),
+            child: const Text('Learn More'),
           ),
         ],
       ),
@@ -257,7 +257,7 @@ class _ReportsScreenState extends State<ReportsScreen>
               child: ElevatedButton.icon(
                 onPressed: () => context.push('/upgrade'),
                 icon: const Icon(Icons.rocket_launch),
-                label: const Text('Upgrade to PRO', style: TextStyle(fontSize: 16)),
+                label: const Text('Explore PRO Features', style: TextStyle(fontSize: 16)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber.shade700,
                   foregroundColor: Colors.white,
@@ -328,16 +328,16 @@ class _ReportsScreenState extends State<ReportsScreen>
                       'Total Revenue',
                       '₹${report.totalRevenue.toStringAsFixed(2)}',
                       Icons.attach_money,
-                      Colors.green,
+                      Colors.blue,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatCard(
-                      'Total Orders',
-                      '${report.totalOrders}',
-                      Icons.shopping_cart,
-                      Colors.blue,
+                      'Profit',
+                      '₹${report.totalProfit.toStringAsFixed(2)}',
+                      Icons.trending_up,
+                      Colors.green,
                     ),
                   ),
                 ],
@@ -347,9 +347,9 @@ class _ReportsScreenState extends State<ReportsScreen>
                 children: [
                   Expanded(
                     child: _buildStatCard(
-                      'Avg Order Value',
-                      '₹${avgOrder.toStringAsFixed(2)}',
-                      Icons.trending_up,
+                      'Total Orders',
+                      '${report.totalOrders}',
+                      Icons.shopping_cart,
                       Colors.orange,
                     ),
                   ),
@@ -463,10 +463,17 @@ class _ReportsScreenState extends State<ReportsScreen>
                       'Total Revenue',
                       '₹${report.totalRevenue.toStringAsFixed(2)}',
                       Icons.account_balance_wallet,
-                      Colors.green,
+                      Colors.blue,
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                'Profit',
+                '₹${report.totalProfit.toStringAsFixed(2)}',
+                Icons.trending_up,
+                Colors.green,
               ),
               const SizedBox(height: 24),
               if (report.products.isEmpty)
@@ -489,7 +496,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                     title: Text(item.productName,
                         style: const TextStyle(fontWeight: FontWeight.w600)),
                     subtitle: Text(
-                      '${item.categoryName ?? 'Uncategorized'} · ${item.totalQuantitySold} units sold · ${item.ordersCount} orders',
+                      '${item.categoryName ?? 'Uncategorized'} · ${item.totalQuantitySold} units · ${item.ordersCount} orders\nProfit: ₹${item.totalProfit.toStringAsFixed(2)}',
                     ),
                     trailing: Text(
                       '₹${item.totalRevenue.toStringAsFixed(2)}',
@@ -546,17 +553,32 @@ class _ReportsScreenState extends State<ReportsScreen>
                       'Total Revenue',
                       '₹${report.totalRevenue.toStringAsFixed(2)}',
                       Icons.attach_money,
-                      Colors.green,
+                      Colors.blue,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildStatCard(
-                'Avg Orders / Customer',
-                avgOrders.toStringAsFixed(1),
-                Icons.trending_up,
-                Colors.orange,
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Profit',
+                      '₹${report.totalProfit.toStringAsFixed(2)}',
+                      Icons.trending_up,
+                      Colors.green,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Avg Orders / Customer',
+                      avgOrders.toStringAsFixed(1),
+                      Icons.trending_up,
+                      Colors.orange,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               if (report.customers.isEmpty)

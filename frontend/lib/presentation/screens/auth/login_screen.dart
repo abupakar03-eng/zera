@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -250,11 +251,11 @@ class _LoginScreenState extends State<LoginScreen>
                       MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
                   onRegister:       () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const RegisterScreen())),
-                  onLongPressLogo: () async {
+                  onLongPressLogo: kDebugMode ? () async {
                     ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Sharing debug log…')));
                     await DebugLog.shareViaSystem();
-                  },
+                  } : null,
                 ),
               ),
             ),
@@ -275,13 +276,14 @@ class _LoginScreenState extends State<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 GestureDetector(
-                  onLongPress: () async {
+                  onLongPress: kDebugMode ? () async {
                     ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Sharing debug log…')));
                     await DebugLog.shareViaSystem();
-                  },
+                  } : null,
                   child: _BrandLogo(),
                 ),
                 const SizedBox(height: 16),

@@ -11,6 +11,7 @@ class ProductEntity {
   final String? unit;
   final String? imageUrl;
   final List<String>? imageUrls;
+  final List<String>? sizes;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -28,6 +29,7 @@ class ProductEntity {
     this.unit,
     this.imageUrl,
     this.imageUrls,
+    this.sizes,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,

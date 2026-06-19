@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>StoreLink · Admin</title>
+<title>ZERA · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -228,7 +228,7 @@ tbody tr:hover td{background:rgba(255,255,255,.015)}
 <body>
 <div id="root"></div>
 
-<script type="text/babel">
+<script type="text/babel" data-presets="react">
 const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
 /* ──────────────── UTILS ──────────────── */
@@ -496,7 +496,7 @@ const Sidebar = ({page, setPage, adminKey, stats, onLogout, onSettings}) => (
     <div className="sb-logo">
       <div className="sb-logo-ico">S</div>
       <div>
-        <div className="sb-logo-text">StoreLink</div>
+        <div className="sb-logo-text">ZERA</div>
         <div className="sb-logo-sub">Admin Portal</div>
       </div>
     </div>
@@ -1333,7 +1333,7 @@ const LoginPage = ({onLogin}) => {
         <div className="login-logo">
           <div className="login-ico">S</div>
           <div>
-            <div className="login-title">StoreLink</div>
+            <div className="login-title">ZERA</div>
             <div className="login-sub">Platform Administration</div>
           </div>
         </div>
@@ -1350,7 +1350,7 @@ const LoginPage = ({onLogin}) => {
           {loading ? 'Signing in…' : 'Sign In →'}
         </button>
         <div style={{marginTop:16,fontSize:11,color:'var(--mut)',textAlign:'center'}}>
-          StoreLink Admin Portal · Protected Access
+          ZERA Admin Portal · Protected Access
         </div>
       </div>
     </div>

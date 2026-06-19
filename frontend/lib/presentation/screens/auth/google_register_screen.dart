@@ -115,7 +115,7 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                             fontSize: 20, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     const Text(
-                        'If you already have a StoreLink account, enter your registered phone number to link it. Otherwise, enter a new number to create an account.',
+                        'If you already have a ZERA account, enter your registered phone number to link it. Otherwise, enter a new number to create an account.',
                         style: TextStyle(
                             color: AppColors.textSecondary, fontSize: 13)),
                     const SizedBox(height: 24),

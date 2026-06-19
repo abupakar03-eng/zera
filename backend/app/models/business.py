@@ -15,6 +15,7 @@ class Business(Base):
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
     uuid = Column(String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()), index=True)
+    store_slug = Column(String(100), unique=True, nullable=True, index=True)
     owner_id = Column(BigInteger, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     business_name = Column(String(255), nullable=False)
     business_type = Column(String(100), nullable=True)

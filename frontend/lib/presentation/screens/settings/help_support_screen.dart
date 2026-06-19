@@ -9,7 +9,7 @@ class HelpSupportScreen extends StatelessWidget {
   static const _whatsappNumber = '919384364069';
   static const _supportEmail = 'contactus@zeramai.com';
   static const _whatsappMessage =
-      'Hi, I need help with StoreLink. Please assist me.';
+      'Hi, I need help with ZERA. Please assist me.';
 
   Future<void> _openWhatsApp(BuildContext context) async {
     final uri = Uri.parse(
@@ -29,8 +29,8 @@ class HelpSupportScreen extends StatelessWidget {
   Future<void> _openEmail(BuildContext context) async {
     // Build mailto string manually — avoids encoding issues with queryParameters
     final mailtoStr =
-        'mailto:$_supportEmail?subject=${Uri.encodeComponent('StoreLink Support Request')}'
-        '&body=${Uri.encodeComponent('Hi StoreLink Team,\n\nI need help with:\n\n')}';
+        'mailto:$_supportEmail?subject=${Uri.encodeComponent('ZERA Support Request')}'
+        '&body=${Uri.encodeComponent('Hi ZERA Team,\n\nI need help with:\n\n')}';
     try {
       final launched = await launchUrl(
         Uri.parse(mailtoStr),
@@ -188,7 +188,7 @@ class HelpSupportScreen extends StatelessWidget {
             const _FaqItem(
               question: 'How do I upgrade to PAID plan?',
               answer:
-                  'Go to "Upgrade to PRO" from the menu and follow the payment steps.',
+                  'Go to "PRO Features" from the menu to learn about available plans.',
             ),
             const _FaqItem(
               question: 'How do I download reports?',
@@ -199,6 +199,32 @@ class HelpSupportScreen extends StatelessWidget {
               question: 'My OTP is not received, what to do?',
               answer:
                   'Check your network, wait 30 seconds, then tap "Resend OTP". If still not received, contact support.',
+            ),
+
+            const SizedBox(height: 28),
+
+            Text(
+              'Legal',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            _ContactCard(
+              icon: Icons.privacy_tip_rounded,
+              iconColor: const Color(0xFF5C6BC0),
+              iconBg: const Color(0xFF5C6BC0).withOpacity(0.1),
+              title: 'Privacy Policy',
+              subtitle: 'storelink.sbs/privacy',
+              badge: 'Required',
+              badgeColor: const Color(0xFF5C6BC0),
+              onTap: () => launchUrl(
+                Uri.parse('https://storelink.sbs/privacy'),
+                mode: LaunchMode.externalApplication,
+              ),
             ),
 
             const SizedBox(height: 28),

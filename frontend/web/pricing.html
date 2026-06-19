@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ZERA PRO Plans</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.wrap{max-width:900px;width:100%;padding:48px 20px 80px;text-align:center}
+h1{font-size:2.2rem;font-weight:900;color:#fff;margin-bottom:8px}
+.sub{color:#6b6b6b;font-size:1rem;margin-bottom:48px}
+.plans{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.card{flex:1;min-width:280px;max-width:380px;background:#111;border:1px solid #222;border-radius:20px;padding:36px 28px;position:relative;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:#6C63FF}
+.card.popular{border-color:#6C63FF;background:linear-gradient(135deg,#111 0%,#1a1433 100%)}
+.badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#6C63FF,#BB86FC);color:#fff;font-size:.7rem;font-weight:800;padding:4px 16px;border-radius:20px;letter-spacing:1px}
+.plan-name{font-size:1rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+.price{font-size:2.8rem;font-weight:900;color:#fff}
+.price span{font-size:1rem;font-weight:400;color:#666}
+.price-sub{color:#666;font-size:.85rem;margin:8px 0 24px}
+.features{text-align:left;margin-bottom:28px}
+.features li{list-style:none;padding:8px 0;color:#aaa;font-size:.9rem;border-bottom:1px solid #1a1a1a}
+.features li::before{content:'✓';color:#6C63FF;font-weight:900;margin-right:10px}
+.btn{display:inline-block;width:100%;padding:16px;border:none;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;text-decoration:none;text-align:center}
+.btn-primary{background:linear-gradient(90deg,#6C63FF,#BB86FC);color:#fff}
+.btn-primary:hover{opacity:.9;transform:scale(1.02)}
+.btn-secondary{background:#1a1a1a;color:#fff;border:1px solid #333}
+.btn-secondary:hover{border-color:#6C63FF}
+.trust{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.trust-item{color:#444;font-size:.8rem;display:flex;align-items:center;gap:6px}
+footer{margin-top:auto;padding:24px;color:#333;font-size:.8rem;text-align:center}
+footer a{color:#6C63FF;text-decoration:none}
+.login-note{background:#111;border:1px solid #222;border-radius:12px;padding:16px 24px;margin-bottom:32px;color:#888;font-size:.9rem}
+.login-note a{color:#6C63FF;text-decoration:none;font-weight:600}
+@media(max-width:680px){
+  .plans{flex-direction:column;align-items:center}
+  .card{max-width:100%}
+  h1{font-size:1.6rem}
+  .price{font-size:2.2rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Choose Your Plan</h1>
+  <p class="sub">Unlock the full potential of ZERA for your business</p>
+
+  <div class="login-note">
+    Already have an account? <a href="https://storelink.sbs">Log in to ZERA</a> to manage your subscription.
+  </div>
+
+  <div class="plans">
+    <!-- Monthly -->
+    <div class="card">
+      <div class="plan-name">Monthly</div>
+      <div class="price">₹699<span>/month</span></div>
+      <p class="price-sub">Billed monthly, cancel anytime</p>
+      <ul class="features">
+        <li>Unlimited Products</li>
+        <li>Advanced Analytics</li>
+        <li>PDF & CSV Export</li>
+        <li>Branded Storefront</li>
+        <li>Priority Support</li>
+        <li>All Future Updates</li>
+      </ul>
+      <button class="btn btn-secondary" onclick="startPayment('monthly')">Get Monthly</button>
+    </div>
+
+    <!-- Yearly -->
+    <div class="card popular">
+      <div class="badge">BEST VALUE</div>
+      <div class="plan-name">Yearly</div>
+      <div class="price">₹6,999<span>/year</span></div>
+      <p class="price-sub">₹583/month · Save ₹1,389 vs monthly</p>
+      <ul class="features">
+        <li>Unlimited Products</li>
+        <li>Advanced Analytics</li>
+        <li>PDF & CSV Export</li>
+        <li>Branded Storefront</li>
+        <li>Priority Support</li>
+        <li>All Future Updates</li>
+      </ul>
+      <button class="btn btn-primary" onclick="startPayment('yearly')">Get Yearly — Save 17%</button>
+    </div>
+  </div>
+
+  <div class="trust">
+    <span class="trust-item">🔒 Secure Payments</span>
+    <span class="trust-item">⚡ Instant Activation</span>
+    <span class="trust-item">❌ Cancel Anytime</span>
+    <span class="trust-item">🧾 GST Invoice</span>
+  </div>
+</div>
+
+<footer>© 2026 ZERA · <a href="https://zeramai.com">zeramai.com</a> · <a href="/privacy">Privacy Policy</a></footer>
+
+<script>
+async function startPayment(planType) {
+  const btn = event.target;
+  const origText = btn.textContent;
+  btn.textContent = 'Redirecting...';
+  btn.disabled = true;
+
+  try {
+    // User needs to be logged in — get token from URL param or prompt login
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    if (!token) {
+      alert('Please log in to ZERA app first, then tap "Learn More" to be redirected here with your account linked.');
+      btn.textContent = origText;
+      btn.disabled = false;
+      return;
+    }
+
+    const resp = await fetch('https://storelink.sbs/v1/billing/upgrade', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: JSON.stringify({ plan_type: planType }),
+    });
+
+    const data = await resp.json();
+
+    if (data.payment_url) {
+      window.location.href = data.payment_url;
+    } else {
+      alert(data.detail || 'Something went wrong. Please try again.');
+      btn.textContent = origText;
+      btn.disabled = false;
+    }
+  } catch (e) {
+    alert('Network error. Please check your connection and try again.');
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

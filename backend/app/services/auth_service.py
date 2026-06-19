@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.user import User, UserRole
 from app.models.business import Business, BusinessPlan
+from app.utils.slug import generate_slug, unique_slug
 from app.models.otp import OTPVerification, OTPPurpose
 from app.models.plan_limit import PlanLimit
 from app.core.security import (
@@ -64,9 +65,12 @@ class AuthService:
         from datetime import date
         trial_expiry = date.today() + timedelta(days=30)
 
+        slug = unique_slug(generate_slug(data.business_name), self.db)
+
         business = Business(
             owner_id=user.id,
             business_name=data.business_name,
+            store_slug=slug,
             phone=data.business_phone,
             email=data.business_email,
             plan=BusinessPlan.PAID,

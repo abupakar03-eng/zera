@@ -10,6 +10,7 @@ def _utc_now() -> datetime:
 
 class BusinessProfileResponse(BaseModel):
     uuid: str
+    store_slug: Optional[str] = None
     business_name: str
     business_type: Optional[str]
     phone: str

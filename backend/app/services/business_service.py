@@ -10,6 +10,7 @@ from app.models.customer import Customer
 from app.schemas.business import BusinessUpdateRequest
 from app.services.plan_limit_service import PlanLimitService
 from app.services.file_upload_service import FileUploadService
+from app.utils.slug import generate_slug, unique_slug
 
 
 class BusinessService:
@@ -77,7 +78,17 @@ class BusinessService:
         
         for key, value in update_data.items():
             setattr(business, key, value)
-            
+
+        # Auto-update slug when business_name changes
+        if "business_name" in update_data:
+            base = generate_slug(update_data["business_name"])
+            business.store_slug = unique_slug(base, self.db, exclude_id=business_id)
+
+        # Auto-generate slug if missing
+        if not business.store_slug:
+            base = generate_slug(business.business_name)
+            business.store_slug = unique_slug(base, self.db, exclude_id=business_id)
+
         # Sync logo_url with first profile image if changed
         if "profile_image_urls" in update_data and update_data["profile_image_urls"]:
             business.logo_url = update_data["profile_image_urls"][0]

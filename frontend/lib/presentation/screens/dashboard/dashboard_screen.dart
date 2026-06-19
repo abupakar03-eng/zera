@@ -184,7 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 _drawerItem(Icons.receipt_long_rounded, 'Orders', () { Navigator.pop(context); context.push('/orders'); }),
                 _drawerItem(Icons.store_rounded, 'Business Profile', () { Navigator.pop(context); context.push('/business-profile'); }),
                 _drawerItem(Icons.bar_chart_rounded, 'Reports', () { Navigator.pop(context); context.push('/reports'); }),
-                _drawerItem(Icons.workspace_premium_rounded, 'Upgrade to PRO', () { Navigator.pop(context); context.push('/upgrade'); }, color: _black),
+                _drawerItem(Icons.workspace_premium_rounded, 'PRO Features', () { Navigator.pop(context); context.push('/upgrade'); }, color: _black),
                 if (auth.user?.role == 'SUPER_ADMIN') ...[
                   const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Divider()),
                   _drawerItem(Icons.admin_panel_settings_rounded, 'Admin Portal', () { Navigator.pop(context); context.push('/admin'); }, color: Colors.red.shade700),
@@ -790,11 +790,11 @@ class _SubscriptionCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Upgrade to PRO',
+                  Text('Go PRO',
                       style: TextStyle(
                           color: _black, fontSize: 14, fontWeight: FontWeight.w700)),
                   SizedBox(height: 2),
-                  Text('Unlimited products & analytics from ₹699/mo',
+                  Text('Unlimited products & advanced analytics',
                       style: TextStyle(color: _mid, fontSize: 11)),
                 ],
               ),
@@ -806,7 +806,7 @@ class _SubscriptionCard extends StatelessWidget {
                 color: _black,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text('Upgrade',
+              child: const Text('Learn More',
                   style: TextStyle(
                       color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
             ),

@@ -21,6 +21,7 @@ class SalesReportResponse(BaseModel):
     to_date: Optional[str]
     total_orders: int
     total_revenue: float
+    total_profit: float
     total_tax: float
     total_discount: float
     orders: List[SalesReportItem]
@@ -32,6 +33,7 @@ class ProductReportItem(BaseModel):
     category_name: Optional[str]
     total_quantity_sold: int
     total_revenue: float
+    total_profit: float
     orders_count: int
 
 
@@ -41,6 +43,7 @@ class ProductReportResponse(BaseModel):
     to_date: Optional[str]
     total_products_sold: int
     total_revenue: float
+    total_profit: float
     products: List[ProductReportItem]
 
 
@@ -59,6 +62,7 @@ class CustomerReportResponse(BaseModel):
     to_date: Optional[str]
     total_customers: int
     total_revenue: float
+    total_profit: float
     customers: List[CustomerReportItem]
 
 

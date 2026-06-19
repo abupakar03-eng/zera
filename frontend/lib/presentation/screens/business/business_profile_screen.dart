@@ -272,7 +272,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                                           isPaid ? Icons.manage_accounts : Icons.rocket_launch,
                                           size: 16,
                                         ),
-                                        label: Text(isPaid ? 'Manage Subscription' : 'Upgrade to PRO'),
+                                        label: Text(isPaid ? 'Manage Plan' : 'Explore PRO'),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: isPaid ? Colors.green.shade700 : Colors.deepOrange,
                                           foregroundColor: Colors.white,

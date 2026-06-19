@@ -22,6 +22,25 @@ from app.config import settings
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+def _business_dict(business) -> dict:
+    """Serialize business object including store_slug."""
+    return {
+        "uuid": business.uuid,
+        "store_slug": business.store_slug,
+        "business_name": business.business_name,
+        "plan": business.plan.value,
+        "is_active": business.is_active,
+        "logo_url": business.logo_url,
+        "banner_url": business.banner_url,
+        "phone": business.phone,
+        "email": business.email,
+        "city": getattr(business, 'city', None),
+        "state": getattr(business, 'state', None),
+        "plan_expiry_date": business.plan_expiry_date.isoformat() if business.plan_expiry_date else None,
+        "subscription_type": business.subscription_type,
+    }
+
+
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(data: RegisterRequest, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
@@ -33,18 +52,7 @@ async def register(data: RegisterRequest, db: Session = Depends(get_db)):
         message="Registration successful",
         data={
             "user": UserResponse.model_validate(user).model_dump(),
-            "business": {
-                "uuid": business.uuid,
-                "business_name": business.business_name,
-                "plan": business.plan.value,
-                "is_active": business.is_active,
-                "logo_url": business.logo_url,
-                "banner_url": business.banner_url,
-                "phone": business.phone,
-                "email": business.email,
-                "plan_expiry_date": business.plan_expiry_date.isoformat() if business.plan_expiry_date else None,
-                "subscription_type": business.subscription_type,
-            },
+            "business": _business_dict(business),
             "tokens": tokens
         }
     )
@@ -64,18 +72,7 @@ async def login(data: LoginRequest, db: Session = Depends(get_db)):
         message="Login successful",
         data={
             "user": UserResponse.model_validate(user).model_dump(),
-            "business": {
-                "uuid": business.uuid,
-                "business_name": business.business_name,
-                "plan": business.plan.value,
-                "is_active": business.is_active,
-                "logo_url": business.logo_url,
-                "banner_url": business.banner_url,
-                "phone": business.phone,
-                "email": business.email,
-                "plan_expiry_date": business.plan_expiry_date.isoformat() if business.plan_expiry_date else None,
-                "subscription_type": business.subscription_type,
-            } if business else None,
+            "business": _business_dict(business) if business else None,
             "tokens": tokens
         }
     )
@@ -116,18 +113,7 @@ async def verify_otp(data: OTPVerifyRequest, db: Session = Depends(get_db)):
             message="OTP verified successfully",
             data={
                 "user": UserResponse.model_validate(user).model_dump(),
-                "business": {
-                    "uuid": business.uuid,
-                    "business_name": business.business_name,
-                    "plan": business.plan.value,
-                    "is_active": business.is_active,
-                    "logo_url": business.logo_url,
-                    "banner_url": business.banner_url,
-                    "phone": business.phone,
-                    "email": business.email,
-                    "plan_expiry_date": business.plan_expiry_date.isoformat() if business.plan_expiry_date else None,
-                    "subscription_type": business.subscription_type,
-                } if business else None,
+                "business": _business_dict(business) if business else None,
                 "tokens": tokens
             }
         )
@@ -186,20 +172,7 @@ async def get_current_user_info(
         message="User information retrieved",
         data={
             "user": UserResponse.model_validate(current_user).model_dump(),
-            "business": {
-                "uuid": business.uuid,
-                "business_name": business.business_name,
-                "plan": business.plan.value,
-                "is_active": business.is_active,
-                "logo_url": business.logo_url,
-                "banner_url": business.banner_url,
-                "phone": business.phone,
-                "email": business.email,
-                "city": business.city,
-                "state": business.state,
-                "plan_expiry_date": business.plan_expiry_date.isoformat() if business.plan_expiry_date else None,
-                "subscription_type": business.subscription_type,
-            } if business else None
+            "business": _business_dict(business) if business else None
         }
     )
 
@@ -267,18 +240,7 @@ async def google_auth(payload: dict, db: Session = Depends(get_db)):
             message="Login successful",
             data={
                 "user": UserResponse.model_validate(user).model_dump(),
-                "business": {
-                    "uuid": business.uuid,
-                    "business_name": business.business_name,
-                    "plan": business.plan.value,
-                    "is_active": business.is_active,
-                    "logo_url": business.logo_url,
-                    "banner_url": business.banner_url,
-                    "phone": business.phone,
-                    "email": business.email,
-                    "plan_expiry_date": business.plan_expiry_date.isoformat() if business.plan_expiry_date else None,
-                    "subscription_type": business.subscription_type,
-                } if business else None,
+                "business": _business_dict(business) if business else None,
                 "tokens": tokens,
             }
         )
@@ -443,18 +405,7 @@ async def google_complete_registration(payload: dict, db: Session = Depends(get_
         message="Registration successful",
         data={
             "user": UserResponse.model_validate(user).model_dump(),
-            "business": {
-                "uuid": business.uuid,
-                "business_name": business.business_name,
-                "plan": business.plan.value,
-                "is_active": business.is_active,
-                "logo_url": business.logo_url,
-                "banner_url": business.banner_url,
-                "phone": business.phone,
-                "email": business.email,
-                "plan_expiry_date": business.plan_expiry_date.isoformat() if business.plan_expiry_date else None,
-                "subscription_type": business.subscription_type,
-            },
+            "business": _business_dict(business),
             "tokens": tokens,
         }
     )

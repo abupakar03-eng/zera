@@ -1,11 +1,11 @@
 {
-    "name": "StoreLink Customer Store",
-    "short_name": "StoreLink",
+    "name": "ZERA Customer Store",
+    "short_name": "ZERA",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#08091A",
     "theme_color": "#FF6F00",
-    "description": "Shop directly from your favorite local stores with StoreLink.",
+    "description": "Shop directly from your favorite local stores with ZERA.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

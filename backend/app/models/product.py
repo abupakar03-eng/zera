@@ -20,6 +20,7 @@ class Product(Base):
     unit = Column(String(50), nullable=True)
     image_url = Column(String(500), nullable=True)
     image_urls = Column(JSON, nullable=True, default=list)
+    sizes = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True, index=True)
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, server_default=func.current_timestamp(), onupdate=func.current_timestamp())

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
@@ -73,7 +74,24 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
     }
   }
 
+  static const _browserChannel = MethodChannel('com.storelink.app/browser');
+
   Future<void> _startPayment() async {
+    final tokenService = ServiceLocator().tokenService;
+    final token = await tokenService.getAccessToken();
+    final target = token != null
+        ? 'https://storelink.sbs/pricing?token=$token'
+        : 'https://storelink.sbs/pricing';
+    try {
+      if (Platform.isAndroid) {
+        await _browserChannel.invokeMethod('openInBrowser', {'url': target});
+        return;
+      }
+    } catch (_) {}
+    await launchUrl(Uri.parse(target), mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _startPayment_unused() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -127,10 +145,7 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
 
   @override
   Widget build(BuildContext context) {
-    final monthlyPrice = '₹699';
-    final yearlyPrice = '₹6,999';
-    final effectiveMonthlyYearly = '₹583';
-    final savings = '₹1,389';
+    // No pricing shown in-app — Play Store compliant
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D1A),
@@ -142,7 +157,7 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Upgrade to PRO',
+          'PRO Features',
           style:
               TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
         ),
@@ -195,68 +210,7 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
             ),
             const SizedBox(height: 32),
 
-            // ── Monthly / Yearly toggle ───────────────────────────────────
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  Expanded(child: _PlanTab(
-                    label: 'Monthly',
-                    selected: !_isYearly,
-                    onTap: () => _selectPlan(false),
-                    badge: null,
-                  )),
-                  Expanded(child: _PlanTab(
-                    label: 'Yearly',
-                    selected: _isYearly,
-                    onTap: () => _selectPlan(true),
-                    badge: 'SAVE 17%',
-                  )),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ── Price card ───────────────────────────────────────────────
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, anim) => FadeTransition(
-                opacity: anim,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.07),
-                    end: Offset.zero,
-                  ).animate(anim),
-                  child: child,
-                ),
-              ),
-              child: _isYearly
-                  ? _PriceCard(
-                      key: const ValueKey('yearly'),
-                      mainPrice: yearlyPrice,
-                      period: '/year',
-                      sub: '$effectiveMonthlyYearly/month billed yearly',
-                      savingsTag: 'Save $savings vs monthly',
-                      gradient: const [Color(0xFF6C63FF), Color(0xFF3B3ACF)],
-                      glowColor: const Color(0xFF6C63FF),
-                      isPopular: true,
-                    )
-                  : _PriceCard(
-                      key: const ValueKey('monthly'),
-                      mainPrice: monthlyPrice,
-                      period: '/month',
-                      sub: 'Billed monthly, cancel anytime',
-                      savingsTag: null,
-                      gradient: const [Color(0xFF434343), Color(0xFF1A1A2E)],
-                      glowColor: Colors.transparent,
-                      isPopular: false,
-                    ),
-            ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 8),
 
             // ── Feature list ─────────────────────────────────────────────
             _SectionTitle('WHAT YOU GET'),
@@ -331,7 +285,7 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: _isLoading ? null : _startPayment,
+                  onTap: _startPayment,
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     alignment: Alignment.center,
@@ -345,13 +299,11 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.bolt_rounded,
-                                  color: Colors.white, size: 22),
+                              const Icon(Icons.open_in_new_rounded,
+                                  color: Colors.white, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                _isYearly
-                                    ? 'GET YEARLY FOR ₹6,999'
-                                    : 'GET MONTHLY FOR ₹699',
+                                'LEARN MORE',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
@@ -492,7 +444,7 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
                           IconButton(
                             icon: const Icon(Icons.share_rounded, color: Color(0xFF6C63FF), size: 20),
                             onPressed: () async {
-                              final msg = 'Join StoreLink — India\'s best business manager app!\nUse my referral code *$_referralCode* to get 1 month FREE.\nDownload: https://storelink.in';
+                              final msg = 'Join ZERA — India\'s best business manager app!\nUse my referral code *$_referralCode* to get 1 month FREE.\nDownload: https://zeramai.com';
                               final uri = Uri.parse('whatsapp://send?text=${Uri.encodeComponent(msg)}');
                               if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
                                 await launchUrl(Uri.parse('https://wa.me/?text=${Uri.encodeComponent(msg)}'));
@@ -516,12 +468,12 @@ class _UpgradePlanScreenState extends State<UpgradePlanScreen>
                 const SizedBox(width: 20),
                 _TrustBadge(Icons.cancel_rounded, 'Cancel Anytime'),
                 const SizedBox(width: 20),
-                _TrustBadge(Icons.receipt_long_rounded, 'GST Invoice'),
+                _TrustBadge(Icons.support_agent_rounded, '24/7 Support'),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Secured by Dodo Payments · Instant activation',
+              'Visit zeramai.com to learn more about PRO plans',
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: Colors.white.withOpacity(0.2),

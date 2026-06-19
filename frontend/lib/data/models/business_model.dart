@@ -4,6 +4,7 @@ import '../../core/constants/api_constants.dart';
 class BusinessModel extends BusinessEntity {
   const BusinessModel({
     required super.uuid,
+    super.storeSlug,
     required super.businessName,
     required super.plan,
     required super.isActive,
@@ -26,6 +27,7 @@ class BusinessModel extends BusinessEntity {
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
     return BusinessModel(
       uuid: json['uuid'] as String,
+      storeSlug: json['store_slug'] as String?,
       businessName: json['business_name'] as String,
       plan: json['plan'] as String,
       isActive: json['is_active'] as bool? ?? true,
