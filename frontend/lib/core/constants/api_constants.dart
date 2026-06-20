@@ -7,15 +7,14 @@ class ApiConstants {
   static String get baseUrl {
     const envUrl = String.fromEnvironment('API_BASE_URL');
     if (envUrl.isNotEmpty) return envUrl;
-    // Always use LAN IP — works for dev machine browser AND phones on same WiFi
-    return 'http://127.0.0.1:8000/v1';
+    return 'https://storelink.sbs/v1';
   }
 
   // Web app base URL (Flutter web) — used for sharing store links
   static String get webAppUrl {
     const envUrl = String.fromEnvironment('WEB_APP_URL');
     if (envUrl.isNotEmpty) return envUrl;
-    return 'http://localhost:8081';
+    return 'https://storelink.sbs';
   }
 
   /// Returns the public store URL for customers

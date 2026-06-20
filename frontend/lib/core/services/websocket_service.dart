@@ -96,11 +96,10 @@ class WebSocketService {
   }
 
   static String _buildWsUrl(String token) {
-    // http://host/v1  ->  ws://host/v1/ws?token=...
-    // https://host/v1 ->  wss://host/v1/ws?token=...
+    // Always use wss:// (encrypted WebSocket) — never ws://
     final base = ApiConstants.baseUrl
         .replaceFirst('https://', 'wss://')
-        .replaceFirst('http://', 'ws://');
+        .replaceFirst('http://', 'wss://');
     return '$base/ws?token=${Uri.encodeComponent(token)}';
   }
 
